@@ -1,5 +1,5 @@
 include <Adafruit_NeoPixel.h>
-
+//Test
   //Hardware
     byte LED              = 4;//= 6; //LED-Streifen auf Pin
     byte whtbut           = 3;//= 4; //roter Taster auf Pin
