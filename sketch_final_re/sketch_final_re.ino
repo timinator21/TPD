@@ -1,5 +1,5 @@
 #include <Adafruit_NeoPixel.h>
-//Test
+//BETA
   //Hardware
     byte LED              = 4;//= 6; //LED-Streifen auf Pin
     byte whtbut           = 3;//= 4; //roter Taster auf Pin
@@ -49,6 +49,7 @@ void setup() {
 
 
   //Durchflusssensor
+    waterFlow = 0;
     attachInterrupt(0, pulse, RISING); //DIGITAL Pin 2: Interrupt 0
 
   //Relais
@@ -134,7 +135,7 @@ void kochen(){
     digitalWrite(pumpe, LOW);                         //Relaisport Pumpe einschalten
     mugset++;
     while (mugset > mugdone){ //&& not skip){
-      pulse();
+      //pulse();
       LEDeinfaerben(1, red);
       /*double old_waterFlow = waterFlow;
       timeout = millis();*/
