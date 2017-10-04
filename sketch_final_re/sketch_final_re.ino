@@ -6,7 +6,7 @@
     byte redbut           = 7;//= 3; //weißer Taster auf Pin
     byte pumpe            = 6;//= 7; //Pumpenpin
     byte sensorInterrupt  = 0;// 0 = digital pin 2
-    byte hallsens         = 2;//= 2; //Durchflusssensorpin
+    byte hallsens         = 2;//= 2; //Durchflusssensorpin   ->U=3,4V
     byte heat             = 5;//= 13;//Heizung
     
     //Reverse
