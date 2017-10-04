@@ -1,4 +1,4 @@
-include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
 //Test
   //Hardware
     byte LED              = 4;//= 6; //LED-Streifen auf Pin
@@ -53,7 +53,7 @@ void setup() {
 
   //Relais
     pinMode(heat, OUTPUT);
-    digitalWrite(heat, HIGH);
+    digitalWrite(heat, LOW);
     pinMode(pumpe, OUTPUT);
     digitalWrite(pumpe, HIGH);
 
@@ -131,15 +131,14 @@ void LEDeinfaerben(byte mode, uint32_t farbe){
  
  
 void kochen(){
-    digitalWrite(heat, LOW);
-    digitalWrite(pumpe, LOW);
+    digitalWrite(pumpe, LOW);                         //Relaisport Pumpe einschalten
     mugset++;
     while (mugset > mugdone){ //&& not skip){
       pulse();
       LEDeinfaerben(1, red);
-      double old_waterFlow = waterFlow;
-      timeout = millis();
-      mugdone = int(waterFlow / 0.10);
+      /*double old_waterFlow = waterFlow;
+      timeout = millis();*/
+      mugdone = int(waterFlow / 0.15);
       /*if (old_waterFlow == waterFlow) //Problem abfangen kein Wasser-> TODO
          timeout = 0;
       if (timeout > 5000) {
@@ -152,7 +151,7 @@ void kochen(){
       LEDeinfaerben(2, red);
       delay(1000);
     }
-    digitalWrite(heat, HIGH);
+    
     digitalWrite(pumpe, HIGH);
     mugset    = 0;
     mugdone   = 0;
@@ -165,12 +164,6 @@ void kochen(){
 
 void pulse(){
     waterFlow += 1.0 / 5880.0;
-}
-
-void blinken(uint32_t farbe){
-  while (true){
-  
-  }
 }
 
 void bootanimation(uint32_t farbe){
