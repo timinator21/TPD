@@ -27,14 +27,11 @@
 
   //Globale Variablen
     short mugset = 0; //Anzahl der Tassen
-    short mugdone = 0;
-    uint32_t rdm;
-    uint32_t rdmcol;
-    bool skip = false;
-    uint32_t timeout = 0; //Timeout, falls Wasserstand zu niedrig
+    short mugdone = 0; //Anzahl der fertigen Tassen
+    bool skip = false; //zurücksetzen durch drücken beider Taster
 
   //Variablen Durchflusssensor
-    volatile double waterFlow = 0;
+    volatile double waterFlow = 0; //Durchfluss insgesamt; volatile für jederzeit änderbaren Wert
    
 
 void setup() {
@@ -50,13 +47,13 @@ void setup() {
 
   //Durchflusssensor
     waterFlow = 0;
-    attachInterrupt(0, pulse, RISING); //DIGITAL Pin 2: Interrupt 0
+    attachInterrupt(0, pulse, RISING); //DIGITAL Pin 2: Interrupt 0; bei steigender Flanke auf Pin 2 wird die Methode 'pulse' aufgerufen
 
   //Relais
     pinMode(heat, OUTPUT);
-    digitalWrite(heat, LOW);
+    digitalWrite(heat, LOW); //Heizung standard an
     pinMode(pumpe, OUTPUT);
-    digitalWrite(pumpe, HIGH);
+    digitalWrite(pumpe, HIGH); //Pumpe standard aus
 
  
   //BOOTANIMATION-1/4: Vier gegenüberliegende LEDs im Ventilatorstil; alle Viertel im Uhrzeigersinn an und anschließend wieder aus
@@ -72,13 +69,13 @@ void loop() {
     LEDeinfaerben(0, red);
       
   //Buttoncases
-    if (not digitalRead(whtbut) && not digitalRead(redbut))
+    if (not digitalRead(whtbut) && not digitalRead(redbut))//kochvorgang starten
       kochen();
       
-    if (digitalRead(redbut) && mugset < 12)
+    if (digitalRead(redbut) && mugset < 12) //Tassen hinzufügen
        mugset++;
       
-    if (digitalRead(whtbut) && mugset > 0)
+    if (digitalRead(whtbut) && mugset > 0)//Tassen entfernen
        mugset--;
     delay(150);
 }
@@ -105,24 +102,24 @@ void LEDeinfaerben(byte mode, uint32_t farbe){
       delay(250);
       LEDeinfaerben(2, red);
    }
-   else if (mode == 2){                                     //fertige Tassen LEDs einfaerben
+   else if (mode == 2){                                     //fertige Tassen LEDs einfaerben (standard gruen)
       for (byte csetms = 0;csetms < mugset-mugdone; csetms ++)
         pixels.setPixelColor(csetms, farbe);
       for (byte csetmd = mugset-mugdone; csetmd < mugset; csetmd++)
           pixels.setPixelColor(csetmd, grn);
       /*if (mugdone > 0)
-        pixels.setPixelColor(mugset-mugdone, 0xffff00);*/
+        pixels.setPixelColor(mugset-mugdone, 0xffff00);*///eventuell erweitern um aktuelle TassenLED gelb zu färben
       pixels.show();
    }
    else if (mode == 3){                                     //Animation fertig, pulsing circle
       for (byte cini = 0; cini < 12; cini++){
-          pixels.setPixelColor(cini, farbe);
+          pixels.setPixelColor(cini, farbe);  //Kreis nacheinander füllen
           pixels.show();
           delay(100);
           skip = not digitalRead(redbut);
       }
       for (byte cini = 11; cini >= 0 && cini < 12; cini--){
-          pixels.setPixelColor(cini, off);
+          pixels.setPixelColor(cini, off); //Kreis umgekehrt ausschalten
           pixels.show();
           skip = not digitalRead(redbut);
           delay(100);
@@ -134,25 +131,17 @@ void LEDeinfaerben(byte mode, uint32_t farbe){
 void kochen(){
     digitalWrite(pumpe, LOW);                         //Relaisport Pumpe einschalten
     mugset++;
-    while (mugset > mugdone){ //&& not skip){
-      //pulse();
+    while (mugset > mugdone){
       LEDeinfaerben(1, red);
-      /*double old_waterFlow = waterFlow;
-      timeout = millis();*/
-      mugdone = int(waterFlow / 0.15);
-      /*if (old_waterFlow == waterFlow) //Problem abfangen kein Wasser-> TODO
-         timeout = 0;
-      if (timeout > 5000) {
-         skip = true;
-         LEDeinfaerben(3, red);
-         }*/
-      //mugdone++; //Funktionssimulation
+      mugdone = int(waterFlow / 0.15); //Fertige Tassen ergeben sich aus Durchfluss / 150ml(Tasse)
+      //mugdone++; //Funktionssimulation ohne Durchfluss
       Serial.println(waterFlow);
       Serial.println(mugdone);
       LEDeinfaerben(2, red);
       delay(1000);
     }
-    
+
+    //Reset für erneutes Kochen
     digitalWrite(pumpe, HIGH);
     mugset    = 0;
     mugdone   = 0;
