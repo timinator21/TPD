@@ -1,13 +1,13 @@
 #include <Adafruit_NeoPixel.h>
 //BETA
   //Hardware
-    byte LED              = 4;//= 6; //LED-Streifen auf Pin
-    byte whtbut           = 3;//= 4; //roter Taster auf Pin
-    byte redbut           = 7;//= 3; //weißer Taster auf Pin
-    byte pumpe            = 6;//= 7; //Pumpenpin
-    byte sensorInterrupt  = 0;// 0 = digital pin 2
-    byte hallsens         = 2;//= 2; //Durchflusssensorpin   ->U=3,4V
-    byte heat             = 5;//= 13;//Heizung
+    byte LED              = 4; //LED-Streifen auf Pin
+    byte whtbut           = 3; //roter Taster auf Pin
+    byte redbut           = 7; //weißer Taster auf Pin
+    byte pumpe            = 6; //Pumpenpin
+    byte sensorInterrupt  = 0; //= digital pin 2
+    byte hallsens         = 2; //Durchflusssensorpin   ->U=3,4V
+    byte heat             = 5; //Heizung
     
     //Reverse
     /*byte LED              = 5;//= 6; //LED-Streifen auf Pin
@@ -28,10 +28,12 @@
   //Globale Variablen
     short mugset = 0; //Anzahl der Tassen
     short mugdone = 0; //Anzahl der fertigen Tassen
-    bool skip = false; //zurücksetzen durch drücken beider Taster
+    bool skip = false; //zurücksetzen durch gedrückt halten des roten Tasters
+    int interrupt = 0; //zurücksetzen bei leerem Tank
 
   //Variablen Durchflusssensor
     volatile double waterFlow = 0; //Durchfluss insgesamt; volatile für jederzeit änderbaren Wert
+    double waterFlowDiff =0; //Alter Durchfluss für automatisches Abschalten
    
 
 void setup() {
@@ -130,11 +132,15 @@ void LEDeinfaerben(byte mode, uint32_t farbe){
  
 void kochen(){
     digitalWrite(pumpe, LOW);                         //Relaisport Pumpe einschalten
-    mugset++;
-    while (mugset > mugdone){
+    mugset++; //Tasse um einen erhöhen, da 1 LED => Wert '0'
+    while (mugset > mugdone && interrupt < 3){
       LEDeinfaerben(1, red);
       mugdone = int(waterFlow / 0.15); //Fertige Tassen ergeben sich aus Durchfluss / 150ml(Tasse)
       //mugdone++; //Funktionssimulation ohne Durchfluss
+      if (waterFlowDiff == waterFlow)
+        interrupt++;
+      else if (waterFlowDiff < waterFlow)
+        waterFlowDiff = waterFlow;
       Serial.println(waterFlow);
       Serial.println(mugdone);
       LEDeinfaerben(2, red);
@@ -146,8 +152,11 @@ void kochen(){
     mugset    = 0;
     mugdone   = 0;
     waterFlow = 0;
-    while (not skip)
+    while (not skip && interrupt < 3)
         LEDeinfaerben(3, grn);
+    
+    while (not skip && interrupt  > 2)
+        LEDeinfaerben(3, red);
     skip = false;
 }
 
