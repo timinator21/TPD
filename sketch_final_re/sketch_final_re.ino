@@ -135,13 +135,16 @@ void kochen(){
     mugset++; //Tasse um einen erhöhen, da 1 LED => Wert '0'
     while (mugset > mugdone && interrupt < 3){
       LEDeinfaerben(1, red);
-      mugdone = int(waterFlow / 0.1); //Fertige Tassen ergeben sich aus Durchfluss / 75ml(Tasse) -> Messungenauigkeit Sensor 
+      mugdone = int(waterFlow / 0.075); //Fertige Tassen ergeben sich aus Durchfluss / 75ml(Tasse) -> Messungenauigkeit Sensor 
       //mugdone++; //Funktionssimulation ohne Durchfluss
+   
       if (waterFlowDiff == waterFlow)
         interrupt++;
       else if (waterFlowDiff < waterFlow)
         waterFlowDiff = waterFlow;
+        
       Serial.println(waterFlow);
+      Serial.println(waterFlowDiff);
       Serial.println(mugdone);
       LEDeinfaerben(2, red);
       delay(1000);
@@ -153,11 +156,12 @@ void kochen(){
     mugdone   = 0;
     waterFlow = 0;
     waterFlowDiff = 0;
-    while (not skip && interrupt < 5)
+
+    while (not skip && interrupt < 3)
         LEDeinfaerben(3, grn);
-    
-    while (not skip && interrupt  > 4)
+    while (not skip && interrupt  >= 3)
         LEDeinfaerben(3, red);
+    interrupt = 0;
     skip = false;
 }
 
